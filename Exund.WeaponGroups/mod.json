@@ -1,0 +1,9 @@
+﻿{
+  "Id": "exund.weapongroups",
+  "DisplayName": "Weapon Groups",
+  "Author": "Exund",
+  "Version": "1.0.0",
+  "Enable": true,
+  "AssemblyName": "Exund.WeaponGroups.dll",
+  "EntryMethod": "Exund.WeaponGroups.WeaponGroupsMod.Load"
+}
