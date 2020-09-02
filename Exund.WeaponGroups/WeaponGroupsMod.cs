@@ -10,6 +10,7 @@ namespace Exund.WeaponGroups
     public class WeaponGroupsMod
     {
         public static BindingFlags bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+        internal static string asm_path = Assembly.GetExecutingAssembly().Location.Replace("Exund.WeaponGroups.dll", "");
 
         public static void Load()
         {

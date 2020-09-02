@@ -16,6 +16,37 @@ namespace Exund.WeaponGroups
         {
             base.block.serializeEvent.Subscribe(this.OnSerialize);
             base.block.serializeTextEvent.Subscribe(this.OnSerialize);
+
+            base.block.AttachEvent.Subscribe(OnAttach);
+            base.block.DetachEvent.Subscribe(OnDetach);
+        }
+
+        void OnAttach()
+        {
+            block.tank.control.driveControlEvent.Subscribe(GetDriveControl);
+            block.tank.DetachEvent.Subscribe(OnBlockDetached);
+        }
+
+        void OnDetach()
+        {
+            block.tank.control.driveControlEvent.Unsubscribe(GetDriveControl);
+            block.tank.DetachEvent.Unsubscribe(OnBlockDetached);
+        }
+
+        void OnBlockDetached(TankBlock block, Tank tank)
+        {
+            foreach (var g in groups)
+            {
+                for (int i = 0; i < g.weapons.Count; i++)
+                {
+                    var w = g.weapons[i];
+                    if (w.block == block)
+                    {
+                        g.weapons.RemoveAt(i);
+                        return;
+                    }
+                }
+            }
         }
 
         private void OnTankPostSpawn()
@@ -54,7 +85,7 @@ namespace Exund.WeaponGroups
                     });
                 }
                 serialDataSave.groups = list.ToArray();
-                //serialDataSave.Store(blockSpec.saveState);
+                serialDataSave.Store(blockSpec.saveState);
                 return;
             }
             SerialData serialData = Module.SerialData<ModuleWeaponGroupController.SerialData>.Retrieve(blockSpec.saveState);
@@ -65,13 +96,26 @@ namespace Exund.WeaponGroups
             }
         }
 
-        void Update()
+        void GetDriveControl(TankControl.ControlState state)
         {
             foreach (var group in groups)
             {
-                if (Input.GetKey(group.keyCode)) group.Fire();
+                var temp = Input.GetKey(group.keyCode);
+                if (group.fireNextFrame && !temp || temp)
+                {
+                    group.fireNextFrame = temp;
+                    group.Fire();
+                }
             }
         }
+
+        /*void Update()
+        {
+            foreach (var group in groups)
+            {
+                group.fireNextFrame = Input.GetKey(group.keyCode);
+            }
+        }*/
 
         private class SerialData : Module.SerialData<ModuleWeaponGroupController.SerialData>
         {
@@ -92,11 +136,15 @@ namespace Exund.WeaponGroups
             public List<WeaponWrapper> weapons = new List<WeaponWrapper>();
             public KeyCode keyCode = KeyCode.Space;
 
+            public bool fireNextFrame;
+            public bool forceFireNextFrame;
+            public bool forceNoFireNextFrame;
+
             public void Fire()
             {
                 foreach (var w in weapons)
                 {
-                    w.Fire();
+                    w.Fire(fireNextFrame);
                 }
             }
         }
@@ -104,9 +152,15 @@ namespace Exund.WeaponGroups
         public class WeaponWrapper
         {
             public static MethodInfo drill_ControlInput = typeof(ModuleDrill).GetMethod("ControlInput", WeaponGroupsMod.bindingFlags);
+            public static FieldInfo drill_m_Spinning = typeof(ModuleDrill).GetField("m_Spinning", WeaponGroupsMod.bindingFlags);
+
             public static MethodInfo hammer_ControlInput = typeof(ModuleHammer).GetMethod("ControlInput", WeaponGroupsMod.bindingFlags);
-            public static MethodInfo weapon_ControlInputTargeted = typeof(ModuleWeapon).GetMethod("ControlInputTargeted", WeaponGroupsMod.bindingFlags);
-            public static MethodInfo weapon_ControlInputManual = typeof(ModuleWeapon).GetMethod("ControlInputManual", WeaponGroupsMod.bindingFlags);
+            public static FieldInfo hammer_m_OperatingState = typeof(ModuleHammer).GetField("m_OperatingState", WeaponGroupsMod.bindingFlags);
+            public static FieldInfo hammer_actuator = typeof(ModuleHammer).GetField("actuator", WeaponGroupsMod.bindingFlags);
+
+            //public static MethodInfo weapon_ControlInputTargeted = typeof(ModuleWeapon).GetMethod("ControlInputTargeted", WeaponGroupsMod.bindingFlags);
+            //public static MethodInfo weapon_ControlInputManual = typeof(ModuleWeapon).GetMethod("ControlInputManual", WeaponGroupsMod.bindingFlags);
+
 
             public ModuleWeapon weapon;
             public ModuleDrill drill;
@@ -122,26 +176,31 @@ namespace Exund.WeaponGroups
                 this.hammer = block.gameObject.GetComponent<ModuleHammer>();
             }
 
-            public void Fire()
+            public void Fire(bool fire)
             {
                 if (weapon)
                 {
                     //USE https://github.com/Aceba1/Control-Blocks/blob/master/Control Block/ClusterBody.cs LINE 74
-                    var tankControl = block.tank.control;
-                    if(tankControl.TargetRadiusWorld != 0f)
-                    {
-                        //weapon_ControlInputTargeted.Invoke(weapon, new object[] { tankControl.TargetPositionWorld, tankControl.TargetRadiusWorld });
-                        weapon_ControlInputManual.Invoke(weapon, new object[] { 0, 0 });
-                        weapon.Process();
-                    }    
+                    weapon.FireControl = fire;
                 }
                 if(drill)
                 {
-                    drill_ControlInput.Invoke(drill, new object[] { 0, true });
+                    drill_ControlInput.Invoke(drill, new object[] { 0, fire });
+                    drill_m_Spinning.SetValue(drill, fire);
+                    drill.Invoke("Update", 0);
                 }
                 if(hammer)
                 {
-                    hammer_ControlInput.Invoke(hammer, new object[] { 0, true });
+                    //hammer_ControlInput.Invoke(hammer, new object[] { 1, fire });
+                    if(fire)
+                    {
+                        var m_OperatingState = hammer_m_OperatingState.GetValue(hammer) as AnimationState;
+                        var actuator = hammer_actuator.GetValue(hammer) as Animation;
+
+                        //m_OperatingState.enabled = fire;
+                        m_OperatingState.time = 0f;
+                        actuator.CrossFade(m_OperatingState.name, 0.05f);
+                    }
                 }
             }
         }
