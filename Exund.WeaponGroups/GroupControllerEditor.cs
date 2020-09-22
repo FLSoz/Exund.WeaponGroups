@@ -47,7 +47,7 @@ namespace Exund.WeaponGroups
                     if (temp_block && temp_block.tank == module.block.tank)
                     {
                         var weapon = new ModuleWeaponGroupController.WeaponWrapper(temp_block);
-                        if(weapon.weapon /*|| weapon.hammer || weapon.drill*/)
+                        if(weapon.weapon && !selectedGroup.weapons.Contains(weapon)/*|| weapon.hammer || weapon.drill*/)
                         {
                             selectedGroup.weapons.Add(weapon);
                             weapon.block.visible.EnableOutlineGlow(true, cakeslice.Outline.OutlineEnableReason.ScriptHighlight);
@@ -70,8 +70,7 @@ namespace Exund.WeaponGroups
                     var temp_block = Singleton.Manager<ManPointer>.inst.targetVisible.block;
                     if (temp_block && temp_block.tank && temp_block.gameObject.GetComponent<ModuleWeaponGroupController>())
                     {
-                        module = temp_block.gameObject.GetComponent<ModuleWeaponGroupController>();
-                        module.block.visible.EnableOutlineGlow(true, cakeslice.Outline.OutlineEnableReason.ScriptHighlight);
+                        SelectModule(temp_block.gameObject.GetComponent<ModuleWeaponGroupController>());
                     }
                 }
                 catch
@@ -302,6 +301,12 @@ namespace Exund.WeaponGroups
             GUILayout.EndVertical();
 
             GUI.DragWindow();
+        }
+
+        void SelectModule(ModuleWeaponGroupController controller)
+        {
+            module = controller;
+            module.block.visible.EnableOutlineGlow(true, cakeslice.Outline.OutlineEnableReason.ScriptHighlight);
         }
 
         void Clean()

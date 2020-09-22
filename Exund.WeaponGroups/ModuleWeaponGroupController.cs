@@ -29,6 +29,7 @@ namespace Exund.WeaponGroups
 
         void OnDetach()
         {
+            this.groups.Clear();
             block.tank.control.driveControlEvent.Unsubscribe(GetDriveControl);
             block.tank.DetachEvent.Unsubscribe(OnBlockDetached);
         }
@@ -108,14 +109,6 @@ namespace Exund.WeaponGroups
                 }
             }
         }
-
-        /*void Update()
-        {
-            foreach (var group in groups)
-            {
-                group.fireNextFrame = Input.GetKey(group.keyCode);
-            }
-        }*/
 
         private class SerialData : Module.SerialData<ModuleWeaponGroupController.SerialData>
         {

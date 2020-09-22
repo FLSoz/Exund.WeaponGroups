@@ -19,7 +19,6 @@ namespace Exund.WeaponGroups
 
             GameObject.DontDestroyOnLoad(holder);
 
-            var cube1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
             new BlockPrefabBuilder(BlockTypes.HE_StdBlock_01_111)
                 .SetBlockID(7030)
                 .SetName("Hawkeye Weapons Controller")
@@ -28,13 +27,22 @@ namespace Exund.WeaponGroups
                 .SetCategory(BlockCategories.Accessories)
                 .SetRarity(BlockRarity.Rare)
                 .SetSize(IntVector3.one)
-                .SetModel(cube1, MakeCopy:false)
-                /*.SetPrice(58860)
+                .SetAPsManual(new Vector3[]
+                {
+                    Vector3.down * 0.5f,
+                    Vector3.forward * 0.5f,
+                    Vector3.left * 0.5f
+                })
+                .SetPrice(24705)
                 .SetRecipe(new Dictionary<ChunkTypes, int> {
-                    { ChunkTypes.SeedAI, 5 }
-                })*/
-                //.SetModel(GameObjectJSON.MeshFromFile(asm_path + "Assets/hadamard_superposer.obj"), true, GameObjectJSON.GetObjectFromGameResources<Material>("RR_Main"))
-                //.SetIcon(GameObjectJSON.ImageFromFile(asm_path + "Assets/hadamard_superposer.png"))
+                    { ChunkTypes.HardenedTitanic, 1 },
+                    { ChunkTypes.HeatCoil, 2 },
+                    { ChunkTypes.SensoryTransmitter, 1 },
+                    { ChunkTypes.TitanicAlloy, 1 },
+                    { ChunkTypes.SeedAI, 1 }
+                })
+                .SetModel(GameObjectJSON.MeshFromFile(asm_path + "Assets/weapon_group_fusebox.obj"), true, GameObjectJSON.GetObjectFromGameResources<Material>("HE_Main"))
+                .SetIcon(GameObjectJSON.ImageFromFile(asm_path + "Assets/weapon_group_fusebox.png"))
                 .AddComponent<ModuleWeaponGroupController>()
                 .RegisterLater();
         }
