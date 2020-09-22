@@ -24,6 +24,7 @@ namespace Exund.WeaponGroups
                 .SetName("Hawkeye Weapons Controller")
                 .SetDescription("This block can control the firing of weapons (guns, drills and hammers).\n\nUsed to manage weapon groups.")
                 .SetFaction(FactionSubTypes.HE)
+                .SetGrade(2)
                 .SetCategory(BlockCategories.Accessories)
                 .SetRarity(BlockRarity.Rare)
                 .SetSize(IntVector3.one)
@@ -44,6 +45,8 @@ namespace Exund.WeaponGroups
                 .SetModel(GameObjectJSON.MeshFromFile(asm_path + "Assets/weapon_group_fusebox.obj"), true, GameObjectJSON.GetObjectFromGameResources<Material>("HE_Main"))
                 .SetIcon(GameObjectJSON.ImageFromFile(asm_path + "Assets/weapon_group_fusebox.png"))
                 .AddComponent<ModuleWeaponGroupController>()
+                .SetCustomEmissionMode(BlockPrefabBuilder.EmissionMode.Active)
+                .SetDropFromCrates(true)
                 .RegisterLater();
         }
     }
