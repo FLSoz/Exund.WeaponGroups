@@ -24,6 +24,7 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]in/
+!/Exund.WeaponGroups/bin/Exund.WeaponGroups/**/*
 [Oo]bj/
 [Ll]og/
 
