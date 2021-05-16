@@ -43,6 +43,7 @@ namespace Exund.WeaponGroups
                     var w = g.weapons[i];
                     if (w.block == block)
                     {
+                        w.block.visible.EnableOutlineGlow(false, cakeslice.Outline.OutlineEnableReason.ScriptHighlight);
                         g.weapons.RemoveAt(i);
                         return;
                     }
@@ -61,8 +62,11 @@ namespace Exund.WeaponGroups
                     name = group.name,
                     weapons = group.positions.Select(p =>
                     {
-                        return new WeaponWrapper(blockman.GetBlockAtPosition(p));
-                    }).ToList(),
+                        var block = blockman.GetBlockAtPosition(p);
+                        if(block)
+                            return new WeaponWrapper(block);
+                        return null;
+                    }).Where(ww => ww != null).ToList(),
                     keyCode = (KeyCode)group.keyCode
                 });
             }
@@ -176,16 +180,16 @@ namespace Exund.WeaponGroups
                     //USE https://github.com/Aceba1/Control-Blocks/blob/master/Control Block/ClusterBody.cs LINE 74
                     weapon.FireControl = fire;
                 }
-                if(drill)
+                if (drill)
                 {
-                    drill_ControlInput.Invoke(drill, new object[] { 0, fire });
+                    //drill_ControlInput.Invoke(drill, new object[] { 0, fire });
                     drill_m_Spinning.SetValue(drill, fire);
-                    drill.Invoke("Update", 0);
+                    //drill.Invoke("Update", 0);
                 }
-                if(hammer)
+                if (hammer)
                 {
                     //hammer_ControlInput.Invoke(hammer, new object[] { 1, fire });
-                    if(fire)
+                    if (fire)
                     {
                         var m_OperatingState = hammer_m_OperatingState.GetValue(hammer) as AnimationState;
                         var actuator = hammer_actuator.GetValue(hammer) as Animation;
