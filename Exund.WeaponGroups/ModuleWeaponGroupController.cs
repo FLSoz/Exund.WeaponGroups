@@ -8,9 +8,21 @@ namespace Exund.WeaponGroups
 {
     public class ModuleWeaponGroupController : Module
     {
+        internal static readonly int aim_ID = 7;
+        internal static Dictionary<ModuleHammer, List<WeaponGroup>> groups_for_hammer = new Dictionary<ModuleHammer, List<WeaponGroup>>();
+
         public List<WeaponGroup> groups = new List<WeaponGroup>();
 
         private SerialData data;
+
+
+        internal static void RemoveGroupForHammer(ModuleHammer hammer, WeaponGroup group)
+        {
+            if (ModuleWeaponGroupController.groups_for_hammer.TryGetValue(hammer, out var groups))
+            {
+                groups.Remove(group);
+            }
+        }
 
         private void OnPool()
         {
@@ -29,9 +41,15 @@ namespace Exund.WeaponGroups
 
         void OnDetach()
         {
+            CleanHammersGroups();
             this.groups.Clear();
             block.tank.control.driveControlEvent.Unsubscribe(GetDriveControl);
             block.tank.DetachEvent.Unsubscribe(OnBlockDetached);
+        }
+
+        void OnRecycle()
+        {
+            CleanHammersGroups();
         }
 
         void OnBlockDetached(TankBlock block, Tank tank)
@@ -43,6 +61,10 @@ namespace Exund.WeaponGroups
                     var w = g.weapons[i];
                     if (w.block == block)
                     {
+                        if(w.hammer)
+                        {
+                            RemoveGroupForHammer(w.hammer, g);
+                        }
                         w.block.visible.EnableOutlineGlow(false, cakeslice.Outline.OutlineEnableReason.ScriptHighlight);
                         g.weapons.RemoveAt(i);
                         return;
@@ -57,18 +79,37 @@ namespace Exund.WeaponGroups
             var blockman = base.block.tank.blockman;
             foreach (var group in data.groups)
             {
-                groups.Add(new WeaponGroup()
+                var actual_group = new WeaponGroup()
                 {
                     name = group.name,
-                    weapons = group.positions.Select(p =>
-                    {
-                        var block = blockman.GetBlockAtPosition(p);
-                        if(block)
-                            return new WeaponWrapper(block);
-                        return null;
-                    }).Where(ww => ww != null).ToList(),
                     keyCode = (KeyCode)group.keyCode
-                });
+                };
+
+                var weapons = group.positions.Select(p =>
+                {
+                    var block = blockman.GetBlockAtPosition(p);
+                    if (block)
+                    {
+                        var weapon = new WeaponWrapper(block);
+                        if(weapon.hammer)
+                        {
+                            if (ModuleWeaponGroupController.groups_for_hammer.TryGetValue(weapon.hammer, out var groups))
+                            {
+                                groups.Add(actual_group);
+                            }
+                            else
+                            {
+                                ModuleWeaponGroupController.groups_for_hammer.Add(weapon.hammer, new List<ModuleWeaponGroupController.WeaponGroup>() { actual_group });
+                            }
+                        }
+                        return weapon;
+                    }
+                    return null;
+                }).Where(ww => ww != null).ToList();
+
+                actual_group.weapons = weapons;
+
+                groups.Add(actual_group);
             }
             base.block.tank.ResetPhysicsEvent.Unsubscribe(this.OnTankPostSpawn);
         }
@@ -110,6 +151,20 @@ namespace Exund.WeaponGroups
                 {
                     group.fireNextFrame = temp;
                     group.Fire();
+                }
+            }
+        }
+
+        void CleanHammersGroups()
+        {
+            foreach (var g in groups)
+            {
+                foreach (var w in g.weapons)
+                {
+                    if (w.hammer)
+                    {
+                        RemoveGroupForHammer(w.hammer, g);
+                    }
                 }
             }
         }
@@ -182,22 +237,12 @@ namespace Exund.WeaponGroups
                 }
                 if (drill)
                 {
-                    //drill_ControlInput.Invoke(drill, new object[] { 0, fire });
-                    drill_m_Spinning.SetValue(drill, fire);
-                    //drill.Invoke("Update", 0);
+                    drill_ControlInput.Invoke(drill, new object[] { 0, fire });
                 }
                 if (hammer)
                 {
-                    //hammer_ControlInput.Invoke(hammer, new object[] { 1, fire });
-                    if (fire)
-                    {
-                        var m_OperatingState = hammer_m_OperatingState.GetValue(hammer) as AnimationState;
-                        var actuator = hammer_actuator.GetValue(hammer) as Animation;
-
-                        //m_OperatingState.enabled = fire;
-                        m_OperatingState.time = 0f;
-                        actuator.CrossFade(m_OperatingState.name, 0.05f);
-                    }
+                    hammer_ControlInput.Invoke(hammer, new object[] { aim_ID, fire });
+                    
                 }
             }
         }

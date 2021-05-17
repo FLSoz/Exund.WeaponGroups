@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Nuterra.BlockInjector;
+using Harmony;
 
 namespace Exund.WeaponGroups
 {
@@ -14,6 +15,9 @@ namespace Exund.WeaponGroups
 
         public static void Load()
         {
+            HarmonyInstance harmony = HarmonyInstance.Create("exund.weapongroups");
+            harmony.PatchAll(Assembly.GetExecutingAssembly());
+
             var holder = new GameObject();
             holder.AddComponent<GroupControllerEditor>();
 
@@ -48,6 +52,29 @@ namespace Exund.WeaponGroups
                 .SetCustomEmissionMode(BlockPrefabBuilder.EmissionMode.Active)
                 .SetDropFromCrates(true)
                 .RegisterLater();
+        }
+    }
+
+    static class Patches
+    {
+        [HarmonyPatch(typeof(ModuleHammer), "ControlInput")]
+        static class ModuleHammer_ControlInput
+        {
+            static bool Prefix(ModuleHammer __instance, int aim, bool fire)
+            {
+                if (aim != ModuleWeaponGroupController.aim_ID && !fire)
+                {
+                    if (ModuleWeaponGroupController.groups_for_hammer.TryGetValue(__instance, out var groups))
+                    {
+                        if (groups.Any(g => g.fireNextFrame))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }

@@ -55,9 +55,20 @@ namespace Exund.WeaponGroups
                     if (temp_block && temp_block.tank == module.block.tank)
                     {
                         var weapon = new ModuleWeaponGroupController.WeaponWrapper(temp_block);
-                        if (weapon.weapon && !selectedGroup.weapons.Any(w => w.block == temp_block)/*|| weapon.hammer || weapon.drill*/)
+                        if (!selectedGroup.weapons.Any(w => w.block == temp_block) && (weapon.weapon || weapon.hammer || weapon.drill))
                         {
                             selectedGroup.weapons.Add(weapon);
+                            if(weapon.hammer)
+                            {
+                                if(ModuleWeaponGroupController.groups_for_hammer.TryGetValue(weapon.hammer, out var groups))
+                                {
+                                    groups.Add(selectedGroup);
+                                }
+                                else
+                                {
+                                    ModuleWeaponGroupController.groups_for_hammer.Add(weapon.hammer, new List<ModuleWeaponGroupController.WeaponGroup>() { selectedGroup });
+                                }
+                            }
                             weapon.block.visible.EnableOutlineGlow(true, cakeslice.Outline.OutlineEnableReason.ScriptHighlight);
                             weaponSelected = true;
                         }
@@ -118,6 +129,14 @@ namespace Exund.WeaponGroups
             {
                 if (groupToRemove != -1)
                 {
+                    var g = module.groups[groupToRemove];
+                    foreach (var w in g.weapons)
+                    {
+                        if (w.hammer)
+                        {
+                            ModuleWeaponGroupController.RemoveGroupForHammer(w.hammer, g);
+                        }
+                    }
                     module.groups.RemoveAt(groupToRemove);
                     groupToRemove = -1;
                 }
@@ -257,6 +276,10 @@ namespace Exund.WeaponGroups
                                         {
                                             weapon.block.visible.EnableOutlineGlow(false, cakeslice.Outline.OutlineEnableReason.ScriptHighlight);
                                             group.weapons.RemoveAt(j);
+                                            if(weapon.hammer)
+                                            {
+                                                ModuleWeaponGroupController.RemoveGroupForHammer(weapon.hammer, group);
+                                            }
                                         }
                                     }
                                     GUILayout.EndHorizontal();
