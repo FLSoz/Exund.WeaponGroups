@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Nuterra.BlockInjector;
-using Harmony;
+using HarmonyLib;
 
 namespace Exund.WeaponGroups
 {
@@ -15,7 +15,7 @@ namespace Exund.WeaponGroups
 
         public static void Load()
         {
-            HarmonyInstance harmony = HarmonyInstance.Create("exund.weapongroups");
+            var harmony = new Harmony("exund.weapongroups");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
             var holder = new GameObject();
