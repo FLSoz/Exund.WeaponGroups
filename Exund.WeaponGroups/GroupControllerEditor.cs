@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using UnityEngine;
-using Nuterra.BlockInjector;
 
 namespace Exund.WeaponGroups
 {
-    class GroupControllerEditor : MonoBehaviour
+    internal class GroupControllerEditor : MonoBehaviour
     {
-        static Texture2D icon_cancel = GameObjectJSON.ImageFromFile(Path.Combine(WeaponGroupsMod.asm_path, "Assets/Icons/cancel.png"));
-        static Texture2D icon_remove = GameObjectJSON.ImageFromFile(Path.Combine(WeaponGroupsMod.asm_path, "Assets/Icons/remove.png"));
-        static Texture2D icon_rename = GameObjectJSON.ImageFromFile(Path.Combine(WeaponGroupsMod.asm_path, "Assets/Icons/rename.png"));
-        static float icon_size = 30;
+        internal static Texture2D icon_cancel;
+        internal static Texture2D icon_remove;
+        internal static Texture2D icon_rename;
+        internal static float icon_size = 30;
 
         static GUIStyle textField;
         static GUIStyle middledText;
