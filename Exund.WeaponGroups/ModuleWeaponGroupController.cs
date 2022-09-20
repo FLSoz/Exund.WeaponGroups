@@ -29,8 +29,8 @@ namespace Exund.WeaponGroups
             base.block.serializeEvent.Subscribe(this.OnSerialize);
             base.block.serializeTextEvent.Subscribe(this.OnSerialize);
 
-            base.block.AttachEvent.Subscribe(OnAttach);
-            base.block.DetachEvent.Subscribe(OnDetach);
+            base.block.AttachedEvent.Subscribe(OnAttach);
+            base.block.DetachedEvent.Subscribe(OnDetach);
         }
 
         void OnAttach()

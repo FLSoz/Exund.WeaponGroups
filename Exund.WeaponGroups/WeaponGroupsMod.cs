@@ -65,7 +65,7 @@ namespace Exund.WeaponGroups
 
     static class Patches
     {
-        [HarmonyPatch(typeof(ModuleHammer), "ControlInput")]
+        [HarmonyPatch(typeof(ModuleHammer), "OnControlInput")]
         static class ModuleHammer_ControlInput
         {
             static bool Prefix(ModuleHammer __instance, int aim, bool fire)
